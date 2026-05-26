@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f9fafb;
+  --foreground: #1a1a2e;
+  --accent: #1a1a2e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+@layer components {
+  .docket-table {
+    border-collapse: collapse;
+  }
+
+  .docket-table tbody td {
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .docket-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+  }
+
+  .docket-table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+
+  .docket-table tbody tr:hover,
+  .docket-table tbody tr:hover td {
+    background-color: #f1f5f9;
+  }
+}
