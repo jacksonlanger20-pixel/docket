@@ -5,20 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
-const mainNav = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/opportunities", label: "Opportunities", badge: 14 },
-  { href: "/coming-soon", label: "Coming Soon", badge: 22, badgeSoft: true },
-  { href: "/applications", label: "My Applications" },
-  { href: "/networking", label: "Networking" },
-];
-
-const profileNav = [
-  { href: "/profile", label: "My Profile" },
-  { href: "/resume", label: "Resume" },
-  { href: "/settings", label: "Settings" },
-];
-
 function NavLink({
   href, label, badge, badgeSoft,
 }: {
@@ -46,16 +32,25 @@ function NavLink({
   );
 }
 
+const profileNav = [
+  { href: "/profile", label: "My Profile" },
+  { href: "/resume", label: "Resume" },
+  { href: "/settings", label: "Settings" },
+];
+
 export function Sidebar() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [initials, setInitials] = useState("");
+  const [openCount, setOpenCount] = useState(0);
+  const [comingSoonCount, setComingSoonCount] = useState(0);
 
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
     );
+
     supabase.auth.getUser().then(({ data }) => {
       const user = data?.user;
       if (!user) return;
@@ -81,7 +76,24 @@ export function Sidebar() {
         setInitials(((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase());
       }
     });
+
+    supabase
+      .from('opportunities')
+      .select('status')
+      .then(({ data }) => {
+        if (!data) return;
+        setOpenCount(data.filter(o => o.status === 'Open' || o.status === 'Closing Soon').length);
+        setComingSoonCount(data.filter(o => o.status === 'Coming Soon').length);
+      });
   }, []);
+
+  const mainNav = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/opportunities", label: "Opportunities", badge: openCount },
+    { href: "/coming-soon", label: "Coming Soon", badge: comingSoonCount, badgeSoft: true },
+    { href: "/applications", label: "My Applications" },
+    { href: "/networking", label: "Networking" },
+  ];
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
