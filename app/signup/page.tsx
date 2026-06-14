@@ -7,6 +7,9 @@ import { createClient } from "@/lib/supabase";
 
 export default function SignupPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [school, setSchool] = useState("");
+  const [gradYear, setGradYear] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,9 +35,16 @@ export default function SignupPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+          school: school.trim(),
+          grad_year: gradYear.trim(),
+        },
+      },
     });
 
     setLoading(false);
@@ -44,13 +54,18 @@ export default function SignupPage() {
       return;
     }
 
-    if (data.session) {
-      router.push("/");
-      router.refresh();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
       return;
     }
 
-    setSuccess("Check your email to confirm your account, then sign in.");
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -75,10 +90,56 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label
-                htmlFor="email"
-                className="mb-1 block text-xs font-medium text-gray-500"
+              <label htmlFor="full-name" className="mb-1 block text-xs font-medium text-gray-500">
+                Full name
+              </label>
+              <input
+                id="full-name"
+                type="text"
+                autoComplete="name"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="school" className="mb-1 block text-xs font-medium text-gray-500">
+                School / University
+              </label>
+              <input
+                id="school"
+                type="text"
+                autoComplete="organization"
+                required
+                value={school}
+                onChange={(e) => setSchool(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="grad-year" className="mb-1 block text-xs font-medium text-gray-500">
+                Graduation year
+              </label>
+              <select
+                id="grad-year"
+                required
+                value={gradYear}
+                onChange={(e) => setGradYear(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
               >
+                <option value="">Select year</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="mb-1 block text-xs font-medium text-gray-500">
                 Email
               </label>
               <input
@@ -93,10 +154,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="mb-1 block text-xs font-medium text-gray-500"
-              >
+              <label htmlFor="password" className="mb-1 block text-xs font-medium text-gray-500">
                 Password
               </label>
               <input
@@ -111,10 +169,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="confirm-password"
-                className="mb-1 block text-xs font-medium text-gray-500"
-              >
+              <label htmlFor="confirm-password" className="mb-1 block text-xs font-medium text-gray-500">
                 Confirm password
               </label>
               <input
@@ -129,15 +184,11 @@ export default function SignupPage() {
             </div>
 
             {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-                {error}
-              </p>
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
             )}
 
             {success && (
-              <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                {success}
-              </p>
+              <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{success}</p>
             )}
 
             <button
