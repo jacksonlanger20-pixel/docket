@@ -1,6 +1,25 @@
+'use client'
+
 import { PageHeader } from "@/components/PageHeader";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function SettingsPage() {
+  const { loading: authLoading } = useRequireAuth()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.replace('/login')
+  }
+
+  if (authLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a1a2e]" />
+    </div>
+  )
+
   return (
     <>
       <PageHeader title="Settings" description="Manage your account and notification preferences." />
@@ -31,6 +50,7 @@ export default function SettingsPage() {
           <p className="mt-2 text-sm text-gray-500">alex.chen@university.edu</p>
           <button
             type="button"
+            onClick={handleSignOut}
             className="mt-4 text-sm font-medium text-red-600 hover:text-red-700"
           >
             Sign out

@@ -1,9 +1,20 @@
+'use client'
+
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { ApplicationStatusBadge } from "@/components/StatusBadge";
 import { applications } from "@/lib/data";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function ApplicationsPage() {
+  const { loading: authLoading } = useRequireAuth()
+
+  if (authLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a1a2e]" />
+    </div>
+  )
+
   return (
     <>
       <PageHeader

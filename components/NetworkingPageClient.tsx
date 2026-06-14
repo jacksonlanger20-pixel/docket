@@ -3,12 +3,20 @@
 import { useState } from "react";
 import { AddContactModal } from "@/components/AddContactModal";
 import { useContacts } from "@/context/ContactsContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export function NetworkingPageClient() {
+  const { loading: authLoading } = useRequireAuth();
   const { contacts, addContact } = useContacts();
   const [modalOpen, setModalOpen] = useState(false);
 
   const sorted = [...contacts].sort((a, b) => a.name.localeCompare(b.name));
+
+  if (authLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a1a2e]" />
+    </div>
+  );
 
   return (
     <>
@@ -16,7 +24,7 @@ export function NetworkingPageClient() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[#1a1a2e]">Networking</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Your contacts across firms — bankers, recruiters, and alumni.
+            Your contacts across firms.
           </p>
         </div>
         <button
@@ -37,18 +45,10 @@ export function NetworkingPageClient() {
           <table className="docket-table min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Firm
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Role
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Email
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Firm</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Role</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Email</th>
               </tr>
             </thead>
             <tbody>
@@ -57,14 +57,7 @@ export function NetworkingPageClient() {
                   <td className="px-4 py-3.5 font-medium text-[#1a1a2e]">{contact.name}</td>
                   <td className="px-4 py-3.5 text-sm text-gray-600">{contact.firm}</td>
                   <td className="px-4 py-3.5 text-sm text-gray-600">{contact.role}</td>
-                  <td className="px-4 py-3.5">
-                    <a
-                      href={`mailto:${contact.email}`}
-                      className="text-sm text-[#1a1a2e] hover:underline"
-                    >
-                      {contact.email}
-                    </a>
-                  </td>
+                  <td className="px-4 py-3.5 text-sm text-gray-600"><a href={"mailto:" + contact.email} className="text-sm text-[#1a1a2e] hover:underline">{contact.email}</a></td>
                 </tr>
               ))}
             </tbody>

@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { PageHeader } from '@/components/PageHeader'
 import { StatCard } from '@/components/StatCard'
 import { createClient } from '@/lib/supabase'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 export default function DashboardPage() {
+  const { loading: authLoading } = useRequireAuth()
   const [opportunities, setOpportunities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -27,6 +30,12 @@ export default function DashboardPage() {
   const comingSoonOpps = opportunities.filter(o => o.status === 'Coming Soon')
   const openPreview = openOpps.slice(0, 5)
   const comingSoonPreview = comingSoonOpps.slice(0, 5)
+
+  if (authLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a1a2e]" />
+    </div>
+  )
 
   if (loading) return (
     <>

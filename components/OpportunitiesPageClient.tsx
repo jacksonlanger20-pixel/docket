@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { CityFilter } from "./CityFilter";
 import { PageHeader } from "./PageHeader";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const CITIES = ["All", "New York", "Chicago", "San Francisco", "Charlotte", "Miami", "Boston", "Los Angeles", "Houston", "Atlanta"];
 
 export function OpportunitiesPageClient() {
+  const { loading: authLoading } = useRequireAuth();
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState("All");
@@ -30,6 +32,12 @@ export function OpportunitiesPageClient() {
     if (city === "All") return opportunities;
     return opportunities.filter((o) => o.city === city);
   }, [city, opportunities]);
+
+  if (authLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a1a2e]" />
+    </div>
+  );
 
   return (
     <>
