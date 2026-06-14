@@ -59,6 +59,23 @@ export function OpportunitiesPageClient() {
     setMarking(null);
   }
 
+  async function handleUnmarkApplied(opp: any) {
+    if (!user) return;
+    setMarking(opp.id);
+    const supabase = createClient();
+    await supabase
+      .from('applications')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('firm', opp.firm);
+    setApplied(prev => {
+      const next = new Set(prev);
+      next.delete(opp.firm);
+      return next;
+    });
+    setMarking(null);
+  }
+
   const filtered = useMemo(() => {
     if (city === "All") return opportunities;
     return opportunities.filter((o) => o.city === city);
@@ -112,9 +129,13 @@ export function OpportunitiesPageClient() {
                   <td className="px-4 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {applied.has(opp.firm) ? (
-                        <span className="text-xs font-medium text-green-600 px-3 py-1.5">
-                          ✓ Applied
-                        </span>
+                        <button
+                          onClick={() => handleUnmarkApplied(opp)}
+                          disabled={marking === opp.id}
+                          className="inline-flex items-center rounded-lg border border-green-200 px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-red-50 hover:text-red-500 hover:border-red-200 disabled:opacity-50"
+                        >
+                          {marking === opp.id ? 'Removing...' : '✓ Applied'}
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleMarkApplied(opp)}
