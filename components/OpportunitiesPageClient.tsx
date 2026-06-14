@@ -6,13 +6,13 @@ import { CityFilter } from "./CityFilter";
 import { PageHeader } from "./PageHeader";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
-const CITIES = ["All", "New York", "Chicago", "San Francisco", "Charlotte", "Miami", "Boston", "Los Angeles", "Houston", "Atlanta"];
-
 export function OpportunitiesPageClient() {
-  const { loading: authLoading } = useRequireAuth();
+  const { loading: authLoading, user } = useRequireAuth();
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState("All");
+  const [applied, setApplied] = useState<Set<string>>(new Set());
+  const [marking, setMarking] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -27,6 +27,37 @@ export function OpportunitiesPageClient() {
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    async function fetchApplied() {
+      if (!user) return;
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('applications')
+        .select('firm')
+        .eq('user_id', user.id);
+      if (data) {
+        setApplied(new Set(data.map((a: any) => a.firm)));
+      }
+    }
+    fetchApplied();
+  }, [user]);
+
+  async function handleMarkApplied(opp: any) {
+    if (!user) return;
+    setMarking(opp.id);
+    const supabase = createClient();
+    await supabase.from('applications').insert([{
+      user_id: user.id,
+      firm: opp.firm,
+      city: opp.city,
+      website_url: opp.website_url,
+      status: 'Applied',
+      next_step: '—',
+    }]);
+    setApplied(prev => new Set([...prev, opp.firm]));
+    setMarking(null);
+  }
 
   const filtered = useMemo(() => {
     if (city === "All") return opportunities;
@@ -79,10 +110,25 @@ export function OpportunitiesPageClient() {
                     </span>
                   </td>
                   <td className="px-4 py-3.5 text-right">
-                    <a href={opp.website_url} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center rounded-lg bg-[#1a1a2e] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2d2d4a]">
-                      Apply
-                    </a>
+                    <div className="flex items-center justify-end gap-2">
+                      {applied.has(opp.firm) ? (
+                        <span className="text-xs font-medium text-green-600 px-3 py-1.5">
+                          ✓ Applied
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleMarkApplied(opp)}
+                          disabled={marking === opp.id}
+                          className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {marking === opp.id ? 'Saving...' : 'Mark Applied'}
+                        </button>
+                      )}
+                      <a href={opp.website_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-lg bg-[#1a1a2e] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2d2d4a]">
+                        Apply
+                      </a>
+                    </div>
                   </td>
                 </tr>
               ))}
